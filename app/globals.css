@@ -50,6 +50,10 @@ select {
   cursor: pointer;
 }
 
+button:disabled {
+  cursor: not-allowed;
+}
+
 a {
   color: inherit;
 }
@@ -284,7 +288,7 @@ a {
 }
 
 .field input::placeholder {
-  color: #a4ada9;
+  color: #66716c;
 }
 
 .field input:hover,
@@ -414,6 +418,12 @@ a {
 
 .primary-button:active {
   transform: translateY(0);
+}
+
+.primary-button:disabled {
+  background: #7c9188;
+  box-shadow: none;
+  transform: none;
 }
 
 .primary-button:focus-visible,
@@ -551,18 +561,17 @@ a {
 }
 
 .lead-identity h3 {
-  overflow: hidden;
   margin: 0 0 4px;
   font-size: 15px;
   letter-spacing: -0.015em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .lead-identity a {
   color: var(--muted);
   font-size: 12px;
   text-decoration: none;
+  overflow-wrap: anywhere;
 }
 
 .lead-identity a:hover {
@@ -571,13 +580,19 @@ a {
 }
 
 .spec-badge {
+  flex: 0 0 auto;
   padding: 6px 8px;
   border-radius: 8px;
   background: #fff0e9;
   color: #b64e27;
   font-size: 10px;
   font-weight: 850;
-  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.spec-badge.not-requested {
+  background: #edf1ef;
+  color: #59645f;
 }
 
 .lead-meta {
@@ -596,21 +611,19 @@ a {
 
 .lead-meta dt {
   margin-bottom: 5px;
-  color: #8a948f;
-  font-size: 9px;
+  color: #59645f;
+  font-size: 10px;
   font-weight: 750;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .lead-meta dd {
-  overflow: hidden;
   margin: 0;
   color: #39433f;
   font-size: 11px;
   font-weight: 650;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .lead-card-footer {
@@ -655,6 +668,8 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  min-height: 44px;
+  padding: 0 4px;
   border: 0;
   background: transparent;
   color: var(--accent);
@@ -666,6 +681,11 @@ a {
   color: var(--accent-dark);
 }
 
+.stage-button:disabled,
+.stage-button:disabled:hover {
+  color: #69736f;
+}
+
 .stage-button span {
   font-size: 16px;
   transition: transform 160ms ease;
@@ -673,6 +693,10 @@ a {
 
 .stage-button:hover span {
   transform: translateX(2px);
+}
+
+.stage-button:disabled span {
+  transform: none;
 }
 
 @media (max-width: 920px) {

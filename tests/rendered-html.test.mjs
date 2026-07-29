@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 async function render() {
@@ -50,7 +52,48 @@ test("removes disposable starter assets and dependencies", async () => {
         new URL("../app/_sites-preview/SkeletonPreview.tsx", import.meta.url),
       ),
     ),
+    assert.rejects(access(new URL("../app/chatgpt-auth.ts", import.meta.url))),
   ]);
 
   assert.doesNotMatch(packageJson, /react-loading-skeleton|drizzle/);
+  assert.match(packageJson, /"typecheck": "tsc --noEmit --incremental false"/);
 });
+
+test("keeps localStorage access inside the storage adapter", async () => {
+  const appRoot = fileURLToPath(new URL("../app", import.meta.url));
+  const sourceFiles = await collectSourceFiles(appRoot);
+  const offenders = [];
+
+  for (const sourceFile of sourceFiles) {
+    const relativePath = path
+      .relative(appRoot, sourceFile)
+      .replaceAll("\\", "/");
+    const source = await readFile(sourceFile, "utf8");
+
+    if (
+      relativePath !== "lib/lead-storage.ts" &&
+      source.includes("localStorage")
+    ) {
+      offenders.push(relativePath);
+    }
+  }
+
+  assert.deepEqual(offenders, []);
+});
+
+async function collectSourceFiles(directory) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    const entryPath = path.join(directory, entry.name);
+
+    if (entry.isDirectory()) {
+      files.push(...(await collectSourceFiles(entryPath)));
+    } else if (entry.isFile() && /\.(?:ts|tsx)$/.test(entry.name)) {
+      files.push(entryPath);
+    }
+  }
+
+  return files;
+}

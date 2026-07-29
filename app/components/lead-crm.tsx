@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { loadLeads, saveLeads } from "../lib/lead-storage";
 import {
   createLead,
@@ -36,6 +36,8 @@ export function LeadCrm() {
   const [errors, setErrors] = useState<LeadErrors>({});
   const [notice, setNotice] = useState<Notice | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const restoreTask = window.setTimeout(() => {
@@ -72,6 +74,10 @@ export function LeadCrm() {
     setNotice(null);
 
     if (Object.keys(validationErrors).length > 0) {
+      const firstInvalidInput = validationErrors.name
+        ? nameInputRef.current
+        : phoneInputRef.current;
+      firstInvalidInput?.focus();
       return;
     }
 
@@ -158,7 +164,12 @@ export function LeadCrm() {
             </span>
           </div>
 
-          <form className="lead-form" onSubmit={handleSubmit} noValidate>
+          <form
+            className="lead-form"
+            onSubmit={handleSubmit}
+            noValidate
+            aria-busy={!isReady}
+          >
             <Field
               label="Имя клиента"
               error={errors.name}
@@ -169,6 +180,8 @@ export function LeadCrm() {
                 id="lead-name"
                 name="name"
                 type="text"
+                ref={nameInputRef}
+                required
                 value={draft.name}
                 onChange={(event) => updateDraft("name", event.target.value)}
                 placeholder="Например, Анна Смирнова"
@@ -188,6 +201,8 @@ export function LeadCrm() {
                 id="lead-phone"
                 name="phone"
                 type="tel"
+                ref={phoneInputRef}
+                required
                 value={draft.phone}
                 onChange={(event) => updateDraft("phone", event.target.value)}
                 placeholder="+7 999 123-45-67"
@@ -260,7 +275,11 @@ export function LeadCrm() {
               </span>
             </label>
 
-            <button className="primary-button" type="submit">
+            <button
+              className="primary-button"
+              type="submit"
+              disabled={!isReady}
+            >
               <span aria-hidden="true">＋</span>
               Сохранить лида
             </button>
@@ -345,7 +364,7 @@ function Field({
       </label>
       {children}
       {error && (
-        <span className="field-error" id={`${htmlFor}-error`}>
+        <span className="field-error" id={`${htmlFor}-error`} role="alert">
           {error}
         </span>
       )}
@@ -355,6 +374,7 @@ function Field({
 
 function LeadCard({ lead, onAdvance }: { lead: Lead; onAdvance: () => void }) {
   const phoneHref = `tel:${lead.phone.replace(/[^\d+]/g, "")}`;
+  const isFinalStage = lead.stage === LEAD_STAGES[LEAD_STAGES.length - 1];
 
   return (
     <article className="lead-card" data-testid="lead-card">
@@ -366,7 +386,11 @@ function LeadCard({ lead, onAdvance }: { lead: Lead; onAdvance: () => void }) {
           <h3>{lead.name}</h3>
           <a href={phoneHref}>{lead.phone}</a>
         </div>
-        {lead.specRequested && <span className="spec-badge">ТЗ</span>}
+        <span
+          className={`spec-badge ${lead.specRequested ? "" : "not-requested"}`}
+        >
+          {lead.specRequested ? "ТЗ запрошено" : "ТЗ не запрошено"}
+        </span>
       </div>
 
       <dl className="lead-meta">
@@ -395,10 +419,15 @@ function LeadCard({ lead, onAdvance }: { lead: Lead; onAdvance: () => void }) {
           className="stage-button"
           type="button"
           onClick={onAdvance}
-          aria-label={`Изменить этап сделки для ${lead.name}`}
+          disabled={isFinalStage}
+          aria-label={
+            isFinalStage
+              ? `Этап сделки для ${lead.name} финальный`
+              : `Изменить этап сделки для ${lead.name}`
+          }
         >
-          Следующий этап
-          <span aria-hidden="true">→</span>
+          {isFinalStage ? "Финальный этап" : "Следующий этап"}
+          {!isFinalStage && <span aria-hidden="true">→</span>}
         </button>
       </div>
     </article>

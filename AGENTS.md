@@ -17,6 +17,8 @@ This file is a map. Deeper decisions live in the linked documents.
 - `app/globals.css`: site-wide visual system
 - `tests/e2e/`: browser acceptance tests
 - `tests/rendered-html.test.mjs`: server-rendered structure checks
+- `worker/index.ts`: minimal Sites runtime adapter
+- `.github/workflows/ci.yml`: GitHub quality gate
 
 ## Required checks
 
@@ -24,8 +26,9 @@ Run these before declaring work complete:
 
 1. `npm run format:check`
 2. `npm run lint`
-3. `npm test`
-4. `npm run test:e2e`
+3. `npm run typecheck`
+4. `npm test`
+5. `npm run test:e2e`
 
 `npm run check` runs the complete sequence.
 

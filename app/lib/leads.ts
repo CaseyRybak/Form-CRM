@@ -64,7 +64,7 @@ export function createLead(draft: LeadDraft): Lead {
 
 export function getNextStage(stage: LeadStage): LeadStage {
   const currentIndex = LEAD_STAGES.indexOf(stage);
-  return LEAD_STAGES[(currentIndex + 1) % LEAD_STAGES.length];
+  return LEAD_STAGES[Math.min(currentIndex + 1, LEAD_STAGES.length - 1)];
 }
 
 export function isLead(value: unknown): value is Lead {
@@ -73,12 +73,15 @@ export function isLead(value: unknown): value is Lead {
   }
 
   const candidate = value as Record<string, unknown>;
+  const hasText = (field: unknown): field is string =>
+    typeof field === "string" && field.trim().length > 0;
 
   return (
-    typeof candidate.id === "string" &&
-    typeof candidate.name === "string" &&
-    typeof candidate.phone === "string" &&
+    hasText(candidate.id) &&
+    hasText(candidate.name) &&
+    hasText(candidate.phone) &&
     typeof candidate.createdAt === "string" &&
+    Number.isFinite(Date.parse(candidate.createdAt)) &&
     typeof candidate.specRequested === "boolean" &&
     LEAD_SOURCES.includes(candidate.source as LeadSource) &&
     LEAD_OWNERS.includes(candidate.owner as LeadOwner) &&
