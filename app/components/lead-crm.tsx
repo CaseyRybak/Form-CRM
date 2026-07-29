@@ -132,7 +132,7 @@ export function LeadCrm() {
         </a>
         <div className="topbar-status">
           <span className="status-dot" aria-hidden="true" />
-          Данные хранятся в этом браузере
+          Данные сохраняются локально
         </div>
       </header>
 

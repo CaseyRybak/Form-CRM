@@ -33,6 +33,7 @@ test("server-renders the CRM form and product metadata", async () => {
   const html = await response.text();
   assert.match(html, /<html[^>]*lang="ru"/i);
   assert.match(html, /<title>Лиды — простая CRM<\/title>/i);
+  assert.match(html, /Данные сохраняются локально/);
   assert.match(html, /Управляйте входящими лидами/);
   assert.match(html, /Имя клиента/);
   assert.match(html, /Номер телефона/);
