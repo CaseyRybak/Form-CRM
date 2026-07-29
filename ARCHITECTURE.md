@@ -14,7 +14,7 @@ Page → LeadCrm UI → lead domain rules → localStorage adapter
 
 - `app/page.tsx` mounts the product.
 - `app/components/lead-crm.tsx` owns React state and user events.
-- `app/lib/leads.ts` owns the lead model, validation, and stage order.
+- `app/lib/leads.ts` owns the lead model, validation, and allowed stage values.
 - `app/lib/lead-storage.ts` owns serialization and the versioned storage key.
 
 UI code must not call `localStorage` directly. Stored JSON is treated as

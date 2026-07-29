@@ -13,7 +13,7 @@ browser persistence and a stage-change action.
 - [x] Record product requirements and architectural boundaries.
 - [x] Build the form and required-field validation.
 - [x] Add versioned localStorage persistence.
-- [x] Render lead cards and stage transitions.
+- [x] Render lead cards and direct stage selection.
 - [x] Pass formatting, lint, build, rendered HTML, and browser tests.
 - [x] Complete browser acceptance and move this plan to `completed/`.
 

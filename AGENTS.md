@@ -12,7 +12,7 @@ This file is a map. Deeper decisions live in the linked documents.
 ## Code map
 
 - `app/components/lead-crm.tsx`: UI, form events, rendering
-- `app/lib/leads.ts`: lead types, validation, stage transitions
+- `app/lib/leads.ts`: lead types, validation, allowed stage values
 - `app/lib/lead-storage.ts`: the only localStorage boundary
 - `app/globals.css`: site-wide visual system
 - `tests/e2e/`: browser acceptance tests
