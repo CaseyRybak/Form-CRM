@@ -69,40 +69,51 @@ test("creates a lead and restores every value after reload", async ({
   expect(hasHorizontalOverflow).toBe(false);
 });
 
-test("stops at the final stage and persists the update", async ({ page }) => {
+test("selects any stage and persists the update", async ({ page }) => {
   await page.getByLabel("Имя клиента").fill("Иван Петров");
   await page.getByLabel("Номер телефона").fill("+7 900 000-00-00");
   await page.getByRole("button", { name: "Сохранить лида" }).click();
 
   const card = page.getByTestId("lead-card");
-  const nextStageButton = card.getByRole("button", {
+  const stageButton = card.getByRole("button", {
     name: "Изменить этап сделки для Иван Петров",
   });
 
   await expect(card).toContainText("ТЗ не запрошено");
-  await nextStageButton.click();
-  await expect(card.getByTestId("lead-stage")).toHaveText("Квалифицирован");
-  await nextStageButton.click();
-  await expect(card.getByTestId("lead-stage")).toHaveText(
-    "Назначена консультация",
-  );
-  await nextStageButton.click();
+  await stageButton.click();
+
+  const stageMenu = card.getByRole("listbox", {
+    name: "Выберите этап сделки для Иван Петров",
+  });
+  await expect(stageMenu).toBeVisible();
+  await expect(stageMenu.getByRole("option")).toHaveCount(4);
+  await stageMenu.getByRole("option", { name: "Отказ" }).click();
   await expect(card.getByTestId("lead-stage")).toHaveText("Отказ");
-  await expect(
-    card.getByRole("button", {
-      name: "Этап сделки для Иван Петров финальный",
-    }),
-  ).toBeDisabled();
+  await expect(stageMenu).toBeHidden();
+
+  await page.reload();
+  const restoredCard = page.getByTestId("lead-card");
+  await expect(restoredCard.getByTestId("lead-stage")).toHaveText("Отказ");
+
+  await restoredCard
+    .getByRole("button", {
+      name: "Изменить этап сделки для Иван Петров",
+    })
+    .click();
+  await restoredCard
+    .getByRole("listbox", {
+      name: "Выберите этап сделки для Иван Петров",
+    })
+    .getByRole("option", { name: "Квалифицирован" })
+    .click();
+  await expect(restoredCard.getByTestId("lead-stage")).toHaveText(
+    "Квалифицирован",
+  );
 
   await page.reload();
   await expect(
     page.getByTestId("lead-card").getByTestId("lead-stage"),
-  ).toHaveText("Отказ");
-  await expect(
-    page.getByRole("button", {
-      name: "Этап сделки для Иван Петров финальный",
-    }),
-  ).toBeDisabled();
+  ).toHaveText("Квалифицирован");
 });
 
 test("supports the complete keyboard flow", async ({ page }) => {
@@ -126,6 +137,11 @@ test("supports the complete keyboard flow", async ({ page }) => {
     name: "Изменить этап сделки для Наталья Волкова",
   });
   await stageButton.focus();
+  await page.keyboard.press("Enter");
+  const qualifiedOption = card.getByRole("option", {
+    name: "Квалифицирован",
+  });
+  await qualifiedOption.focus();
   await page.keyboard.press("Enter");
   await expect(card.getByTestId("lead-stage")).toHaveText("Квалифицирован");
 });

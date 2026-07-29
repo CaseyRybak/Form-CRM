@@ -62,11 +62,6 @@ export function createLead(draft: LeadDraft): Lead {
   };
 }
 
-export function getNextStage(stage: LeadStage): LeadStage {
-  const currentIndex = LEAD_STAGES.indexOf(stage);
-  return LEAD_STAGES[Math.min(currentIndex + 1, LEAD_STAGES.length - 1)];
-}
-
 export function isLead(value: unknown): value is Lead {
   if (!value || typeof value !== "object") {
     return false;

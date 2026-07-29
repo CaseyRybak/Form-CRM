@@ -1,11 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import { loadLeads, saveLeads } from "../lib/lead-storage";
 import {
   createLead,
   EMPTY_LEAD,
-  getNextStage,
   LEAD_OWNERS,
   LEAD_SOURCES,
   LEAD_STAGES,
@@ -97,9 +103,9 @@ export function LeadCrm() {
     setNotice({ kind: "success", text: "Лид успешно сохранён" });
   }
 
-  function advanceLeadStage(leadId: string) {
+  function changeLeadStage(leadId: string, stage: LeadStage) {
     const nextLeads = leads.map((lead) =>
-      lead.id === leadId ? { ...lead, stage: getNextStage(lead.stage) } : lead,
+      lead.id === leadId ? { ...lead, stage } : lead,
     );
 
     if (!saveLeads(nextLeads)) {
@@ -323,7 +329,7 @@ export function LeadCrm() {
                 <LeadCard
                   key={lead.id}
                   lead={lead}
-                  onAdvance={() => advanceLeadStage(lead.id)}
+                  onStageChange={(stage) => changeLeadStage(lead.id, stage)}
                 />
               ))
             )}
@@ -372,9 +378,22 @@ function Field({
   );
 }
 
-function LeadCard({ lead, onAdvance }: { lead: Lead; onAdvance: () => void }) {
+function LeadCard({
+  lead,
+  onStageChange,
+}: {
+  lead: Lead;
+  onStageChange: (stage: LeadStage) => void;
+}) {
   const phoneHref = `tel:${lead.phone.replace(/[^\d+]/g, "")}`;
-  const isFinalStage = lead.stage === LEAD_STAGES[LEAD_STAGES.length - 1];
+  const stageMenuId = useId();
+  const stageButtonRef = useRef<HTMLButtonElement>(null);
+  const [isStageMenuOpen, setIsStageMenuOpen] = useState(false);
+
+  function closeStageMenu() {
+    setIsStageMenuOpen(false);
+    stageButtonRef.current?.focus();
+  }
 
   return (
     <article className="lead-card" data-testid="lead-card">
@@ -415,20 +434,69 @@ function LeadCard({ lead, onAdvance }: { lead: Lead; onAdvance: () => void }) {
         >
           {lead.stage}
         </span>
-        <button
-          className="stage-button"
-          type="button"
-          onClick={onAdvance}
-          disabled={isFinalStage}
-          aria-label={
-            isFinalStage
-              ? `Этап сделки для ${lead.name} финальный`
-              : `Изменить этап сделки для ${lead.name}`
-          }
+        <div
+          className="stage-picker"
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) {
+              setIsStageMenuOpen(false);
+            }
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              closeStageMenu();
+            }
+          }}
         >
-          {isFinalStage ? "Финальный этап" : "Следующий этап"}
-          {!isFinalStage && <span aria-hidden="true">→</span>}
-        </button>
+          <button
+            ref={stageButtonRef}
+            className="stage-button"
+            type="button"
+            onClick={() => setIsStageMenuOpen((current) => !current)}
+            aria-controls={stageMenuId}
+            aria-expanded={isStageMenuOpen}
+            aria-haspopup="listbox"
+            aria-label={`Изменить этап сделки для ${lead.name}`}
+          >
+            Изменить этап сделки
+            <span className="stage-chevron" aria-hidden="true">
+              {isStageMenuOpen ? "↑" : "↓"}
+            </span>
+          </button>
+
+          {isStageMenuOpen && (
+            <div
+              className="stage-menu"
+              id={stageMenuId}
+              role="listbox"
+              aria-label={`Выберите этап сделки для ${lead.name}`}
+            >
+              {LEAD_STAGES.map((stage, index) => {
+                const isCurrentStage = stage === lead.stage;
+
+                return (
+                  <button
+                    className="stage-menu-option"
+                    key={stage}
+                    type="button"
+                    role="option"
+                    aria-selected={isCurrentStage}
+                    disabled={isCurrentStage}
+                    onClick={() => {
+                      onStageChange(stage);
+                      closeStageMenu();
+                    }}
+                  >
+                    <span className={`stage stage-${index}`}>{stage}</span>
+                    {isCurrentStage && (
+                      <span className="current-stage-mark">Текущий</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </article>
   );

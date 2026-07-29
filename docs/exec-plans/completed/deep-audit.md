@@ -22,5 +22,5 @@ expanding the product.
 
 - Keep persistence device-local and retain the one-page product shape.
 - Treat stored JSON as untrusted and discard invalid records.
-- Make `Отказ` a terminal stage instead of cycling to `Новый лид`.
+- Replace sequential stage cycling with direct selection from all declared stages.
 - Keep Sites runtime plumbing only where deployment compatibility requires it.
